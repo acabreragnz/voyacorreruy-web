@@ -65,6 +65,8 @@
   .championship .stage.past .num,
   .championship .stage.past .date { color: #aaa; }
   .championship .stage.past .check { color: #2c7a3a; font-weight: 700; }
+  .championship .stage.placeholder { font-style: italic; color: #aaa; background: #fafafa; }
+  .championship .stage.placeholder .desc { color: #aaa; }
   .championship .stage .num { color: var(--muted); font-variant-numeric: tabular-nums; }
   .championship .stage .date { font-variant-numeric: tabular-nums; }
   .championship .stage .desc small { color: var(--muted); display: block; }
@@ -249,17 +251,46 @@ function renderChamps() {
     const stages = byCirc[name].slice().sort((a, b) =>
       (a.etapa || 99) - (b.etapa || 99) || (a.fecha_inicio || "").localeCompare(b.fecha_inicio || "")
     );
+    // Si hay numeración explícita y la serie no empieza en 1, agregar
+    // placeholders para las etapas faltantes (ej: Salto Run que arranca
+    // en 2° porque la 1° ya pasó y no fue capturada por ningún scraper).
+    const numbered = stages.filter(s => typeof s.etapa === "number");
+    if (numbered.length) {
+      const minN = Math.min(...numbered.map(s => s.etapa));
+      const present = new Set(numbered.map(s => s.etapa));
+      const filled = [];
+      for (let n = 1; n < minN; n++) {
+        if (!present.has(n)) {
+          filled.push({ etapa: n, _placeholder: true });
+        }
+      }
+      stages.unshift(...filled);
+    }
     const det = document.createElement("details");
     det.className = "championship";
     const future = stages.filter(s => s.fecha_inicio && s.fecha_inicio >= TODAY).length;
     if (future > 0) det.open = true;
+    const realCount = stages.filter(s => !s._placeholder).length;
+    const placeholderCount = stages.length - realCount;
     const sum = document.createElement("summary");
     sum.innerHTML = '🏆 ' + name + ' <span style="color: var(--muted); font-weight: 400; font-size: 0.85em;">· ' +
-                    stages.length + ' etapas' + (future ? ' (' + future + ' por venir)' : '') + '</span>';
+                    realCount + ' etapas' +
+                    (placeholderCount ? ' (+' + placeholderCount + ' sin datos)' : '') +
+                    (future ? ' · ' + future + ' por venir' : '') + '</span>';
     det.appendChild(sum);
     const stagesDiv = document.createElement("div");
     stagesDiv.className = "stages";
     for (const s of stages) {
+      if (s._placeholder) {
+        const row = document.createElement("div");
+        row.className = "stage placeholder";
+        row.innerHTML =
+          '<div class="num">#' + s.etapa + '</div>' +
+          '<div class="date">—</div>' +
+          '<div class="desc">etapa sin datos (probablemente ya disputada)</div>';
+        stagesDiv.appendChild(row);
+        continue;
+      }
       const row = document.createElement("div");
       row.className = "stage";
       if (s.fecha_inicio && s.fecha_inicio < TODAY) row.classList.add("past");
