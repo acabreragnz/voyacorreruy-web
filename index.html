@@ -58,10 +58,17 @@
   .championship .stage { display: grid; grid-template-columns: 60px 40px 1fr;
                          gap: 0.5em; padding: 0.3em 0; border-top: 1px solid #f0f0f0;
                          font-size: 0.92em; }
-  .championship .stage.past { opacity: 0.45; }
+  .championship .stage.past { color: #888; background: #fafafa; }
+  .championship .stage.past .desc strong { text-decoration: line-through;
+                                            text-decoration-color: #bbb;
+                                            font-weight: 500; }
+  .championship .stage.past .num,
+  .championship .stage.past .date { color: #aaa; }
+  .championship .stage.past .check { color: #2c7a3a; font-weight: 700; }
   .championship .stage .num { color: var(--muted); font-variant-numeric: tabular-nums; }
   .championship .stage .date { font-variant-numeric: tabular-nums; }
   .championship .stage .desc small { color: var(--muted); display: block; }
+  .championship .stage .check { display: inline-block; margin-right: 0.3em; }
   .event details.desc { margin-top: 0.3em; font-size: 0.85em; }
   .event details.desc summary { color: var(--muted); cursor: pointer;
                                  list-style: none; user-select: none; }
@@ -256,12 +263,14 @@ function renderChamps() {
       const row = document.createElement("div");
       row.className = "stage";
       if (s.fecha_inicio && s.fecha_inicio < TODAY) row.classList.add("past");
+      const isPast = s.fecha_inicio && s.fecha_inicio < TODAY;
       const num = '<div class="num">' + (s.etapa ? "#" + s.etapa : "—") + '</div>';
       const date = '<div class="date">' + fmtDate(s.fecha_inicio) + ' <small style="color: var(--muted);">' +
                    dowName(s.fecha_inicio) + '</small></div>';
       const meta = [s.distancia, s.lugar].filter(Boolean).join(" · ");
       const link = s.registration_url || s.info_url;
-      const desc = '<div class="desc"><strong>' + s.evento + '</strong>' +
+      const checkMark = isPast ? '<span class="check" title="Etapa ya disputada">✓</span>' : '';
+      const desc = '<div class="desc">' + checkMark + '<strong>' + s.evento + '</strong>' +
                    (link ? ' <a href="' + link + '" target="_blank" rel="noopener" style="font-size:0.8em;">↗</a>' : '') +
                    (meta ? '<small>' + meta + '</small>' : "") + '</div>';
       row.innerHTML = num + date + desc;
