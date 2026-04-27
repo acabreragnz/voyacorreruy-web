@@ -375,9 +375,11 @@ document.querySelectorAll('.tabs button[data-tab]').forEach(b => {
 });
 
 function syncDistVisibility() {
-  const hide = state.sport === "trail";
-  document.getElementById("dist-filters").style.display = hide ? "none" : "";
-  document.getElementById("dist-sep").style.display = hide ? "none" : "";
+  // Mostrar SOLO cuando el filtro de deporte está en "running" (Calle).
+  // En trail los tags son irregulares y en "todas" mezcla los dos.
+  const show = state.sport === "running";
+  document.getElementById("dist-filters").style.display = show ? "" : "none";
+  document.getElementById("dist-sep").style.display = show ? "" : "none";
 }
 document.querySelectorAll('.filters button[data-sport]').forEach(b => {
   b.addEventListener("click", () => {
